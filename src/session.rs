@@ -4,16 +4,21 @@ use std::collections::{BTreeMap, HashMap};
 use std::path::PathBuf;
 use std::sync::Mutex;
 
+use crate::data::DatasetSnapshot;
 use lme_rs::LmeFit;
+use polars::prelude::DataFrame;
 
 use crate::dto::ModelKind;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CachedFit {
     /// Semantic family of the cached model.
     pub model_kind: ModelKind,
     pub formula: String,
     pub data_path: PathBuf,
+    /// Immutable parsed input and exact source bytes used for all original-data operations.
+    pub data: DataFrame,
+    pub dataset: DatasetSnapshot,
     /// REML setting when applicable to the model family.
     pub reml: Option<bool>,
     /// Adaptive Gauss-Hermite quadrature points for GLMM/NLMM.
@@ -46,15 +51,7 @@ impl FitSession {
             .lock()
             .expect("fit session lock poisoned")
             .get(fit_id)
-            .map(|c| CachedFit {
-                model_kind: c.model_kind,
-                formula: c.formula.clone(),
-                data_path: c.data_path.clone(),
-                reml: c.reml,
-                n_agq: c.n_agq,
-                start: c.start.clone(),
-                fit: c.fit.clone(),
-            })
+            .cloned()
     }
 
     pub fn list(&self) -> Vec<(String, CachedFit)> {
@@ -62,20 +59,7 @@ impl FitSession {
             .lock()
             .expect("fit session lock poisoned")
             .iter()
-            .map(|(id, c)| {
-                (
-                    id.clone(),
-                    CachedFit {
-                        model_kind: c.model_kind,
-                        formula: c.formula.clone(),
-                        data_path: c.data_path.clone(),
-                        reml: c.reml,
-                        n_agq: c.n_agq,
-                        start: c.start.clone(),
-                        fit: c.fit.clone(),
-                    },
-                )
-            })
+            .map(|(id, c)| (id.clone(), c.clone()))
             .collect()
     }
 

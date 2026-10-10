@@ -11,7 +11,7 @@ mod marginal;
 mod session;
 
 pub use api::{AgentApiError, LmeAgentApi};
-pub use data::load_csv;
+pub use data::{load_csv, DatasetSnapshot};
 pub use dto::{
     AnovaRequest, AnovaRow, AnovaSummary, BootConfintRow, BootSummary, BootstrapRequest,
     CompareModelsRequest, CompareModelsSummary, ConfidenceIntervalMethod, ConfidenceIntervalRow,
@@ -29,3 +29,6 @@ pub const ENGINE_NAME: &str = "lme-rs";
 
 /// Published `lme-rs` version used by this release of the agent core.
 pub const ENGINE_VERSION: &str = "0.2.6";
+
+/// Shared orchestration version represented in provenance records.
+pub const AGENT_VERSION: &str = env!("CARGO_PKG_VERSION");

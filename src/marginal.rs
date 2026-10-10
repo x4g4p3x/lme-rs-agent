@@ -1,6 +1,6 @@
 //! Transport-neutral contracts for engine reference-grid inference.
 
-use crate::{load_csv, AgentApiError, CachedFit, ModelKind};
+use crate::{AgentApiError, CachedFit, ModelKind};
 use lme_rs::{DdfMethod, GridWeights, McpAdjust, ReferenceGrid};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -36,7 +36,7 @@ pub enum PairwiseAdjustment {
     Tukey,
 }
 
-#[derive(Debug, Clone, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct MarginalMeansRequest {
     pub fit_id: String,
     /// Categorical fixed-effect factors defining the target cells.
@@ -55,7 +55,7 @@ pub struct MarginalMeansRequest {
     pub level: f64,
 }
 
-#[derive(Debug, Clone, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct PairwiseComparisonsRequest {
     #[serde(flatten)]
     pub grid: MarginalMeansRequest,
@@ -199,8 +199,7 @@ fn prepare(
         MarginalDdf::Asymptotic => None,
         _ => return Err(invalid("ddf_method is incompatible with this model kind")),
     };
-    let (_, data) = load_csv(&cached.data_path.to_string_lossy())
-        .map_err(|e| AgentApiError::InvalidInput(e.to_string()))?;
+    let data = cached.data.clone();
     let grid = ReferenceGrid {
         terms: request.terms.clone(),
         by: request.by.clone(),

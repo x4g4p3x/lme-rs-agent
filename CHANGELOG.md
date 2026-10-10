@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0 - 2026-10-10
+
+- Retain exact CSV bytes and parsed frames for fitted models; expose `dataset_snapshot`.
+- Original-data inference, prediction, bootstrap, and CV use captured frames.
+- Reject comparisons of fits whose captured dataset bytes differ at the same path.
+- Limit CSV snapshots to 256 MiB; preserve existing data-root checks.
+
 ## 0.1.0 - 2026-10-10
 
 - Extract the protocol-neutral fit/session API from lme-rs-mcp.

@@ -1,10 +1,25 @@
 //! Load tabular data from local CSV paths for agent-facing operations.
 
 use std::fs::File;
+use std::io::{Cursor, Read};
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use anyhow::{Context, Result};
 use polars::prelude::*;
+
+/// Exact bytes parsed for a fitted model, retained independently of the source file.
+#[derive(Debug, Clone)]
+pub struct DatasetSnapshot {
+    pub path: PathBuf,
+    bytes: Arc<[u8]>,
+}
+
+impl DatasetSnapshot {
+    pub fn bytes(&self) -> &[u8] {
+        &self.bytes
+    }
+}
 
 /// Resolve and load a CSV file referenced by an agent request.
 ///
@@ -12,6 +27,11 @@ use polars::prelude::*;
 /// directory before canonicalization. The canonical path must still lie under the root.
 /// `LME_MCP_DATA_ROOT` is accepted as a backwards-compatible alias.
 pub fn load_csv(data_path: &str) -> Result<(PathBuf, DataFrame)> {
+    let (snapshot, data) = load_csv_snapshot(data_path)?;
+    Ok((snapshot.path, data))
+}
+
+pub(crate) fn load_csv_snapshot(data_path: &str) -> Result<(DatasetSnapshot, DataFrame)> {
     let path = Path::new(data_path);
     let resolved = if path.is_absolute() {
         path.to_path_buf()
@@ -43,11 +63,21 @@ pub fn load_csv(data_path: &str) -> Result<(PathBuf, DataFrame)> {
     }
 
     let file = File::open(&canonical).with_context(|| format!("failed to open {canonical:?}"))?;
-    let df = CsvReader::new(file)
+    const MAX_BYTES: u64 = 256 * 1024 * 1024;
+    let mut bytes = Vec::new();
+    file.take(MAX_BYTES + 1).read_to_end(&mut bytes)?;
+    anyhow::ensure!(bytes.len() as u64 <= MAX_BYTES, "CSV input exceeds 256 MiB");
+    let df = CsvReader::new(Cursor::new(bytes.as_slice()))
         .finish()
         .with_context(|| format!("failed to parse CSV {canonical:?}"))?;
 
-    Ok((canonical, df))
+    Ok((
+        DatasetSnapshot {
+            path: canonical,
+            bytes: bytes.into(),
+        },
+        df,
+    ))
 }
 
 fn optional_data_root() -> Option<(&'static str, PathBuf)> {

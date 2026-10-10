@@ -25,6 +25,13 @@ Set `LME_DATA_ROOT` to constrain relative and absolute CSV paths to a canonicali
 directory. `LME_MCP_DATA_ROOT` remains a deprecated compatibility alias for existing MCP
 installations.
 
+Version 0.2.0 retains exact CSV bytes (up to 256 MiB) and the parsed frame for each
+fit. `dataset_snapshot(fit_id)` supplies provenance bytes; original-data operations
+use the captured frame even after the source changes or disappears. Prediction on
+an explicitly supplied new CSV still loads that file. Forgetting a model releases
+its snapshot. Consumers constructing `CachedFit` directly must supply `data` and
+`dataset` fields.
+
 ## Development
 
 The shared API includes marginal means and adjusted pairwise comparisons for

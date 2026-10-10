@@ -15,7 +15,7 @@ use lme_rs::{
 };
 use uuid::Uuid;
 
-use crate::data::load_csv;
+use crate::data::{load_csv, load_csv_snapshot, DatasetSnapshot};
 use crate::dto::{
     AnovaRequest, AnovaRow, AnovaSummary, BootConfintRow, BootSummary, BootstrapRequest,
     CompareModelsRequest, CompareModelsSummary, ConfidenceIntervalMethod, ConfidenceIntervalRow,
@@ -42,6 +42,10 @@ pub struct LmeAgentApi {
 }
 
 impl LmeAgentApi {
+    /// Return the exact original input bytes used by this fit for provenance/export.
+    pub fn dataset_snapshot(&self, fit_id: &str) -> Result<DatasetSnapshot, AgentApiError> {
+        Ok(self.cached_fit(fit_id)?.dataset)
+    }
     pub fn marginal_means(
         &self,
         request: crate::MarginalMeansRequest,
@@ -300,7 +304,7 @@ impl LmeAgentApi {
                     .to_string(),
             ));
         }
-        if fit_a.data_path != fit_b.data_path {
+        if fit_a.dataset.bytes() != fit_b.dataset.bytes() {
             return Err(AgentApiError::InvalidInput(
                 "compare_models requires fits from the same dataset".to_string(),
             ));
@@ -575,8 +579,8 @@ impl LmeAgentApi {
 
     fn fit_model_lm(&self, request: FitModelRequest) -> Result<FitSummary, AgentApiError> {
         reject_fields_for_lm(&request)?;
-        let (path, df) =
-            load_csv(&request.data_path).map_err(|e| AgentApiError::InvalidInput(e.to_string()))?;
+        let (dataset, df) = load_csv_snapshot(&request.data_path)
+            .map_err(|e| AgentApiError::InvalidInput(e.to_string()))?;
 
         let ast = lme_rs::formula::parse(&request.formula)
             .map_err(|e| AgentApiError::InvalidInput(e.to_string()))?;
@@ -594,7 +598,9 @@ impl LmeAgentApi {
         self.cache_fit(CachedFit {
             model_kind: ModelKind::Lm,
             formula: request.formula,
-            data_path: path,
+            data_path: dataset.path.clone(),
+            data: df,
+            dataset,
             reml: None,
             n_agq: None,
             start: None,
@@ -625,14 +631,16 @@ impl LmeAgentApi {
         }
 
         let reml = request.reml.unwrap_or(true);
-        let (path, df) =
-            load_csv(&request.data_path).map_err(|e| AgentApiError::InvalidInput(e.to_string()))?;
+        let (dataset, df) = load_csv_snapshot(&request.data_path)
+            .map_err(|e| AgentApiError::InvalidInput(e.to_string()))?;
         let fit = lmer(&request.formula, &df, reml)
             .map_err(|e| AgentApiError::Computation(e.to_string()))?;
         self.cache_fit(CachedFit {
             model_kind: ModelKind::Lmm,
             formula: request.formula,
-            data_path: path,
+            data_path: dataset.path.clone(),
+            data: df,
+            dataset,
             reml: Some(reml),
             n_agq: None,
             start: None,
@@ -657,14 +665,16 @@ impl LmeAgentApi {
         let n_agq = request.n_agq.unwrap_or(1);
         validate_n_agq(n_agq)?;
 
-        let (path, df) =
-            load_csv(&request.data_path).map_err(|e| AgentApiError::InvalidInput(e.to_string()))?;
+        let (dataset, df) = load_csv_snapshot(&request.data_path)
+            .map_err(|e| AgentApiError::InvalidInput(e.to_string()))?;
         let fit = glmer_with_link(&request.formula, &df, family, link, n_agq)
             .map_err(|e| AgentApiError::Computation(e.to_string()))?;
         self.cache_fit(CachedFit {
             model_kind: ModelKind::Glmm,
             formula: request.formula,
-            data_path: path,
+            data_path: dataset.path.clone(),
+            data: df,
+            dataset,
             reml: None,
             n_agq: Some(n_agq),
             start: None,
@@ -690,8 +700,8 @@ impl LmeAgentApi {
         let start = parse_nlmm_start(request.start.as_ref())?;
         let start_metadata = request.start.clone();
 
-        let (path, df) =
-            load_csv(&request.data_path).map_err(|e| AgentApiError::InvalidInput(e.to_string()))?;
+        let (dataset, df) = load_csv_snapshot(&request.data_path)
+            .map_err(|e| AgentApiError::InvalidInput(e.to_string()))?;
         let options = NlmerOptions {
             reml,
             start,
@@ -703,7 +713,9 @@ impl LmeAgentApi {
         self.cache_fit(CachedFit {
             model_kind: ModelKind::Nlmm,
             formula: request.formula,
-            data_path: path,
+            data_path: dataset.path.clone(),
+            data: df,
+            dataset,
             reml: Some(reml),
             n_agq: Some(n_agq),
             start: start_metadata,
@@ -900,8 +912,7 @@ fn fit_summary_from_cached(fit_id: &str, cached: &CachedFit) -> FitSummary {
 fn load_cached_data(
     cached: &CachedFit,
 ) -> Result<(std::path::PathBuf, polars::prelude::DataFrame), AgentApiError> {
-    load_csv(cached.data_path.to_string_lossy().as_ref())
-        .map_err(|e| AgentApiError::InvalidInput(e.to_string()))
+    Ok((cached.data_path.clone(), cached.data.clone()))
 }
 
 fn resolve_parameter_indices(

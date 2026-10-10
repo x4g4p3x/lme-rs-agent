@@ -1,6 +1,6 @@
 [package]
 name = "lme-rs-agent"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Martin Huck <x4g4p3x@users.noreply.github.com>"]
 description = "Protocol-neutral agent API for lme-rs mixed-effects models"

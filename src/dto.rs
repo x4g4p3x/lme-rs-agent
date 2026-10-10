@@ -62,7 +62,7 @@ pub enum ConfidenceIntervalMethod {
 }
 
 /// Semantic model-fitting request shared by protocol adapters.
-#[derive(Debug, Clone, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct FitModelRequest {
     /// Statistical model family: `lm`, `lmm`, `glmm`, or `nlmm`.
     pub model_kind: ModelKind,
@@ -87,7 +87,7 @@ pub struct FitModelRequest {
     pub start: Option<BTreeMap<String, f64>>,
 }
 
-#[derive(Debug, Clone, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct FitLmmRequest {
     /// Wilkinson formula, e.g. `Reaction ~ Days + (1 | Subject)`.
     pub formula: String,
@@ -98,13 +98,13 @@ pub struct FitLmmRequest {
     pub reml: bool,
 }
 
-#[derive(Debug, Clone, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct FitIdRequest {
     /// Identifier returned by a fitting operation.
     pub fit_id: String,
 }
 
-#[derive(Debug, Clone, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct AnovaRequest {
     pub fit_id: String,
     #[serde(default = "default_ddf")]
@@ -114,7 +114,7 @@ pub struct AnovaRequest {
 }
 
 /// Legacy LMM-only bootstrap request retained for `lme_boot`.
-#[derive(Debug, Clone, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct BootstrapRequest {
     pub fit_id: String,
     #[serde(default = "default_nsim")]
@@ -132,7 +132,7 @@ pub struct BootstrapRequest {
 }
 
 /// Model-aware bootstrap request used by the semantic `bootstrap` operation.
-#[derive(Debug, Clone, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct ModelBootstrapRequest {
     pub fit_id: String,
     #[serde(default = "default_nsim")]
@@ -151,14 +151,14 @@ pub struct ModelBootstrapRequest {
 }
 
 /// Compare two cached nested models by likelihood-ratio test.
-#[derive(Debug, Clone, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct CompareModelsRequest {
     pub fit_id_a: String,
     pub fit_id_b: String,
 }
 
 /// Confidence intervals for fixed-effect coefficients.
-#[derive(Debug, Clone, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct ConfidenceIntervalsRequest {
     pub fit_id: String,
     #[serde(default = "default_conf_level")]
@@ -171,7 +171,7 @@ pub struct ConfidenceIntervalsRequest {
 }
 
 /// Prediction request for a cached model.
-#[derive(Debug, Clone, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct PredictRequest {
     pub fit_id: String,
     /// CSV path for new data. Omit to predict on the original fitted dataset.
@@ -187,7 +187,7 @@ pub struct PredictRequest {
 }
 
 /// Group-preserving cross-validation request.
-#[derive(Debug, Clone, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct CrossValidateRequest {
     pub fit_id: String,
     /// Grouping column whose levels are kept intact across folds.
