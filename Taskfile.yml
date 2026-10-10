@@ -1,0 +1,11 @@
+version: '3'
+tasks:
+  ci:
+    cmds:
+      - cargo fmt --check
+      - cargo clippy --all-targets --locked -- -D warnings
+      - cargo test --locked
+  preflight:
+    cmds:
+      - task: ci
+      - cargo audit
