@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1 - 2026-10-11
+
+- Pin the published lme-rs 0.2.7 engine and report that exact version in provenance.
+- Include the engine's multi-block solve, Type III hypothesis, and scalar KR fixes.
+
+
 ## 0.2.0 - 2026-10-10
 
 - Retain exact CSV bytes and parsed frames for fitted models; expose `dataset_snapshot`.

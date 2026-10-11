@@ -33,7 +33,7 @@ fn neutral_core_owns_fit_session_lifecycle() {
 
 #[test]
 fn protocol_names_and_json_schema_are_transport_independent() {
-    assert_eq!(ENGINE_VERSION, "0.2.6");
+    assert_eq!(ENGINE_VERSION, "0.2.7");
     assert_eq!(serde_json::to_value(ModelKind::Lmm).unwrap(), "lmm");
     let schema = schemars::schema_for!(FitModelRequest);
     let schema_json = serde_json::to_value(schema).expect("serialize JSON schema");

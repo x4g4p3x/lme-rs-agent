@@ -16,7 +16,7 @@ in-process fitted-model session. It deliberately has no MCP or SCP transport dep
 ```
 
 `lme-rs-agent` is not a statistics reimplementation. Numerical work remains in `lme-rs`.
-The current agent release pins the published `lme-rs 0.2.6` engine exactly so provenance
+The current agent release pins the published `lme-rs 0.2.7` engine exactly so provenance
 and tested behavior identify the same statistical implementation.
 
 ## Data paths

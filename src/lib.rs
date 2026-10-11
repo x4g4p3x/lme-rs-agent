@@ -28,7 +28,7 @@ pub use session::{CachedFit, FitSession};
 pub const ENGINE_NAME: &str = "lme-rs";
 
 /// Published `lme-rs` version used by this release of the agent core.
-pub const ENGINE_VERSION: &str = "0.2.6";
+pub const ENGINE_VERSION: &str = "0.2.7";
 
 /// Shared orchestration version represented in provenance records.
 pub const AGENT_VERSION: &str = env!("CARGO_PKG_VERSION");

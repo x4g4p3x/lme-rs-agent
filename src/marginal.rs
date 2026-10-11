@@ -130,7 +130,7 @@ fn prepare(
     AgentApiError,
 > {
     if !matches!(cached.model_kind, ModelKind::Lm | ModelKind::Lmm) {
-        return Err(invalid("lme-rs 0.2.6 marginal inference supports LM and LMM only; GLMM and NLMM grids are unsupported"));
+        return Err(invalid("lme-rs 0.2.7 marginal inference supports LM and LMM only; GLMM and NLMM grids are unsupported"));
     }
     if !cached.fit.converged.unwrap_or(false) {
         return Err(invalid("marginal inference requires a converged fit"));

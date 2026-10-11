@@ -1,6 +1,6 @@
 [package]
 name = "lme-rs-agent"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 authors = ["Martin Huck <x4g4p3x@users.noreply.github.com>"]
 description = "Protocol-neutral agent API for lme-rs mixed-effects models"
@@ -12,7 +12,7 @@ categories = ["science", "mathematics"]
 
 [dependencies]
 anyhow = "1"
-lme-rs = "=0.2.6"
+lme-rs = "=0.2.7"
 polars = { version = "0.46.0", features = ["csv"] }
 schemars = "1"
 serde = { version = "1", features = ["derive"] }
